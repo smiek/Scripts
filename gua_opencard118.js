@@ -4,7 +4,7 @@
 一次性脚本
 
 1.每邀请满3人50豆
-2.开1张卡
+2.开1张
 3.已开卡的不算有效人数
 
 第一个账号助力作者 其他依次助力CK1
@@ -25,15 +25,15 @@ All变量适用
 请求太频繁会被黑ip
 过10分钟再执行
 
-cron:30 1 16-31/3 3 *
+cron:30 1 15-31/3 3 *
 ============Quantumultx===============
 [task_local]
 #海蓝之谜邀请入会有礼
-30 1 16-31/3 3 * https://raw.githubusercontent.com/smiek2121/scripts/master/gua_opencard118.js, tag=海蓝之谜邀请入会有礼, enabled=true
+30 1 15-31/3 3 * https://raw.githubusercontent.com/smiek2121/scripts/master/gua_opencard118.js, tag=海蓝之谜邀请入会有礼, enabled=true
 
 */
-let guaopencard = "false"
-let guaopenwait = "0"
+let guaopencard = "true"
+let guaopenwait = "1"
 
 const $ = new Env('海蓝之谜邀请入会有礼');
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
@@ -81,6 +81,10 @@ let activityCookie =''
   $.activityId = "2203100041074702"
   $.shareUuid = "76f9a4f1df2e42fd98c05997c0c9bc7d"
   console.log(`入口:\nhttps://lzkjdz-isv.isvjcloud.com/m/1000410747/99/${$.activityId}/?helpUuid=${$.shareUuid}`)
+  let ckindex = 1
+  let ck0 = cookiesArr[0]
+  cookiesArr[0] = cookiesArr[ckindex-1]
+  cookiesArr[ckindex-1] = ck0
 
   for (let i = 0; i < cookiesArr.length; i++) {
     cookie = cookiesArr[i];
@@ -96,6 +100,7 @@ let activityCookie =''
       await run();
       if(i == 0 && !$.actorUuid) break
       if($.outFlag || $.activityEnd) break
+      break
     }
   }
   if($.outFlag) {
@@ -122,12 +127,12 @@ async function run() {
       return
     }
     await getCk()
+    if (activityCookie == '') {
+      console.log(`获取cookie失败`); return;
+    }
     if($.activityEnd === true){
       console.log('活动结束')
       return
-    }
-    if (activityCookie == '') {
-      console.log(`获取cookie失败`); return;
     }
     if($.outFlag){
       console.log('此ip已被限制，请过10分钟后再执行脚本\n')
@@ -156,10 +161,13 @@ async function run() {
       console.log('开卡')
       $.joinVenderId = 1000410747
       await joinShop()
-      if($.errorJoinShop && $.errorJoinShop.indexOf('活动太火爆，请稍后再试') > -1){
+      if($.errorJoinShop.indexOf('活动太火爆，请稍后再试') > -1){
         console.log('重新开卡')
-        await $.wait(parseInt(Math.random() * 2000 + 2000, 10))
+        await $.wait(parseInt(Math.random() * 2000 + 3000, 10))
         await joinShop()
+      }
+      if($.errorJoinShop.indexOf('活动太火爆，请稍后再试') > -1){
+        console.log("开卡失败❌")
       }
       await takePostRequest('activityContent');
     }
@@ -195,7 +203,7 @@ async function takePostRequest(type) {
   switch (type) {
     case 'isvObfuscator':
       url = `https://api.m.jd.com/client.action?functionId=isvObfuscator`;
-      body = `body=%7B%22url%22%3A%22https%3A//lzkjdz-isv.isvjcloud.com%22%2C%22id%22%3A%22%22%7D&uuid=9a79133855e4ed42e83cda6c58b51881c4519236&client=apple&clientVersion=10.1.4&st=1647263148203&sv=102&sign=53ee02a59dece3c480e3fcb067c49954`;
+      body = `body=%7B%22url%22%3A%22https%3A//lzkjdz-isv.isvjcloud.com%22%2C%22id%22%3A%22%22%7D&uuid=27d2d5ace7afb9798b52a0c86a32bdc20c50e9a9&client=apple&clientVersion=10.1.4&st=1647257894095&sv=111&sign=bf724936c2779018cae3004b8c90bcfd`;
       break;
     case 'getMyPing':
       url = `${domain}/customer/getMyPing`;
@@ -305,6 +313,7 @@ async function dealReturn(type, data) {
           if(res.result && res.result === true){
             $.actorUuid = res.data.customerId || ''
             $.helpStatus = res.data.helpStatus || ''
+            $.openStatus = res.data.openStatus || ''
             $.assistCount = res.data.assistCount || 0
           }else if(res.errorMessage){
             console.log(`${type} ${res.errorMessage || ''}`)
